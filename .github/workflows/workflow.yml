@@ -52,10 +52,6 @@ jobs:
         if: github.event.inputs.action == 'deploy'
         run: terraform apply -auto-approve tfplan.binary
 
-      - name: Terraform Plan (Destroy)
+      - name: Terraform Destroy (Destroy only)
         if: github.event.inputs.action == 'destroy'
-        run: terraform plan -destroy -out=tfplan_destroy.binary
-
-      - name: Terraform Apply (Destroy)
-        if: github.event.inputs.action == 'destroy'
-        run: terraform apply -auto-approve tfplan_destroy.binary
+        run: terraform destroy -auto-approve
