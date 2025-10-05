@@ -1,0 +1,52 @@
+name: Terraform Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose Terraform action'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Fmt
+        if: github.event.inputs.action == 'deploy'
+        run: terraform fmt -check
+
+      - name: Terraform Plan (Deploy)
+        if: github.event.inputs.action == 'deploy'
+        run: terraform plan -out=tfplan.binary
+
+      - name: Terraform Apply (Deploy)
+        if: github.event.inputs.action == 'deploy'
+        run: terraform apply -auto-approve tfplan.binary
+
+      - name: Terraform Plan (Destroy)
+        if: github.event.inputs.action == 'destroy'
+        run: terraform plan -destroy -out=tfplan_destroy.binary
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve tfplan_destroy.binary
