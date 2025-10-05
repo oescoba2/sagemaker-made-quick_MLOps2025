@@ -20,10 +20,26 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
     #!/bin/bash
     set -ex
 
-    if [ ! -z "$${SM_JOB_DEF_VERSION}" ]
-    then
+    # =========================================================
+    # This lifecycle script runs every time the JupyterLab app
+    # starts (unless in Job mode) and does the following:
+    # 1. Installs LaTeX packages required for PDF export
+    # 2. Clones the GitHub repository if it doesn't exist
+    # =========================================================
+
+    # Skip lifecycle config if running in SageMaker Job mode
+    if [ ! -z "$${SM_JOB_DEF_VERSION}" ]; then
        echo "Running in job mode, skipping lifecycle config"
     else
+       # -------------------------------
+       # Install TeXLive packages for PDF export in Jupyter
+       # -------------------------------
+       sudo apt update
+       sudo apt install -y texlive-xetex texlive-fonts-recommended texlive-latex-extra
+
+       # -------------------------------
+       # Clone the repository if it does not exist
+       # -------------------------------
        if [ ! -d "/home/sagemaker-user/amazon-sagemaker-from-idea-to-production" ]; then
          git clone https://github.com/aws-samples/amazon-sagemaker-from-idea-to-production.git || {
            echo "Error: Failed to clone repository"
@@ -37,6 +53,7 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
   EOF
   )
 }
+
 
 
 
