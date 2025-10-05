@@ -59,3 +59,16 @@ module "spaces" {
   owner_name         = module.user.user_profile_name
   execution_role_arn = module.iam.execution_role_arn
 }
+
+
+# ----------------------------
+# MLflow Module
+# ----------------------------
+module "mlflow" {
+  source = "./modules/mlflow"
+
+  domain_id          = module.domain.domain_id
+  owner_name         = module.user.user_profile_name
+  execution_role_arn = module.iam.execution_role_arn
+}
+
