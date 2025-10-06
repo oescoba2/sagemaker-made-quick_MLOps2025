@@ -163,7 +163,7 @@ The default settings are probably fine. Click `Create bucket` after giving it a 
 ## Update your forked repository's code
 In your forked repository, update the file at
 
-`/terraform/user/main.tf`
+`/terraform/modules/user/main.tf`
 
 Around line 45 there should be a url for this repository, update it to be for your own forked repository
 <img width="739" height="230" alt="image" src="https://github.com/user-attachments/assets/e882a040-b60a-4064-8aec-73207c63c052" />
