@@ -1,6 +1,8 @@
 # sagemaker-made-quick-tutorial
 This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: from idea to production in six steps"](https://github.com/aws-samples/amazon-sagemaker-from-idea-to-production) to make it easier to deploy and tear down.
 
+<br>
+
 ## Contents
 
 [Prerequisites](#Prerequisites-to-run)
@@ -11,6 +13,7 @@ This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: f
 
 [Destroying](#Destroying-the-AWS-Infrastructure)
 
+<br>
 
 ## Prerequisites to run
 - An AWS IAM user with the following policies:
@@ -27,6 +30,8 @@ This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: f
 
 - An AWS S3 bucket
 - Fork this repo to your own github account. Note this repo assumes an AWS region of `us-east-1`.
+
+<br>
 
 ## Setup Instructions
 ## Creating the IAM user
@@ -97,6 +102,8 @@ Click Next and give the Policy a name and Description
 
 Click `Create policy`
 
+<br>
+
 ### Add the custom policy to your user
 
 Go to IAM > Users > [YOUR_NEW_USER's_NAME]
@@ -109,6 +116,7 @@ Search for and add your custom policy to the user
 
 <img width="1484" height="847" alt="image" src="https://github.com/user-attachments/assets/e8d9ee2d-aa47-4474-9003-6ddb76769bc9" />
 
+<br>
 
 ## Create an access key for the user
 Go to IAM > USERS > [YOUR_NEW_USER's_NAME]
@@ -121,6 +129,8 @@ Follow the pictures:
 <img width="971" height="716" alt="image" src="https://github.com/user-attachments/assets/7601ba71-e417-47f1-b402-65ee5d3ab460" />
 <img width="979" height="260" alt="image" src="https://github.com/user-attachments/assets/2c425b03-3234-4728-9a51-f3d37b2594bb" />
 Copy the key ID and Secret Access Key
+
+<br>
 
 ## Input the access key into your forked repository
 Go to the page for your forked repository
@@ -140,6 +150,8 @@ For the Access Key Secret:
 
 <img width="799" height="199" alt="image" src="https://github.com/user-attachments/assets/7e88cde3-38d1-4a88-b7f9-63125195ed69" />
 These are the default values that Terraform looks for when getting auth for AWS
+
+<br>
 
 ## Create an S3 Bucket
 Terraform will need a place to store its current state. We will make an S3 bucket for it to use.
@@ -163,6 +175,7 @@ Update the bucket name to be your S3 Bucket's unique name
 
 After these steps, your forked repository is ready to provision your resources in AWS and track your progress.
 
+<br>
 
 ## Deploying the AWS Infrastructure
 In your forked repository's page, navigate to `Actions` > `Terraform Workflow` > `Run Workflow` > `Run Workflow`
@@ -170,12 +183,14 @@ In your forked repository's page, navigate to `Actions` > `Terraform Workflow` >
 This will start the workflow for deploying the infrastructure and refreshing the page will show the status of the running workflow.
 <img width="1911" height="906" alt="image" src="https://github.com/user-attachments/assets/6b50a4b7-fdf3-4095-be9d-a386ac27ec79" />
 
+<br>
 
 ## Destroying the AWS Infrastructure
 
-```
-For Terraform to be able to destroy the domain we need to make sure that all the apps and spaces in the domain are deleted and not running. Terraform does not manage those resources.
-```
+> [!WARNING]
+> For Terraform to be able to destroy the domain we need to make sure that all the apps and spaces in the domain are deleted and not running. Terraform does not manage those resources.
+
+
 In JupyterLab stop any running spaces
 <img width="1643" height="914" alt="image" src="https://github.com/user-attachments/assets/e4b8ca86-4097-46a3-b9d2-c755ea3e639b" />
 <img width="1643" height="914" alt="image" src="https://github.com/user-attachments/assets/39880a59-35a5-44ba-9304-643cd0a6bbd6" />
