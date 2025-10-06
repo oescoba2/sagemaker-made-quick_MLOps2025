@@ -9,7 +9,7 @@ variable "execution_role_arn" {
 }
 
 # -----------------------------------------------------------
-# Lifecycle Configuration — clones the GitHub repo on startup
+# Lifecycle Configuration — clones the GitHub repo's on startup
 # -----------------------------------------------------------
 resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
   studio_lifecycle_config_name     = "clone-repo"
@@ -24,7 +24,7 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
     # This lifecycle script runs every time the JupyterLab app
     # starts (unless in Job mode) and does the following:
     # 1. Installs LaTeX packages required for PDF export
-    # 2. Clones the GitHub repository if it doesn't exist
+    # 2. Clones the GitHub repositories if they don't exist
     # =========================================================
 
     # Skip lifecycle config if running in SageMaker Job mode
@@ -38,22 +38,32 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
        sudo apt install -y texlive-xetex texlive-fonts-recommended texlive-latex-extra
 
        # -------------------------------
-       # Clone the repository if it does not exist
+       # Clone repositories if they don't exist
        # -------------------------------
+
+       if [ ! -d "/home/sagemaker-user/sagemaker-made-easier" ]; then
+         git clone https://github.com/Jime567/sagemaker-made-easier.git || {
+           echo "Error: Failed to clone repository"
+           exit 0
+         }
+         echo "Repository successfully cloned: sagemaker-made-easier"
+       else
+         echo "Repository already exists, skipping clone: sagemaker-made-easier"
+       fi
+
        if [ ! -d "/home/sagemaker-user/amazon-sagemaker-from-idea-to-production" ]; then
          git clone https://github.com/aws-samples/amazon-sagemaker-from-idea-to-production.git || {
            echo "Error: Failed to clone repository"
            exit 0
          }
-         echo "Repository successfully cloned"
+         echo "Repository successfully cloned: amazon-sagemaker-from-idea-to-production"
        else
-         echo "Repository already exists, skipping clone"
+         echo "Repository already exists, skipping clone: amazon-sagemaker-from-idea-to-production"
        fi
     fi
   EOF
   )
 }
-
 
 
 

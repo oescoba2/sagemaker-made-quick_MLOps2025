@@ -1,5 +1,5 @@
 # sagemaker-made-quick-tutorial
-This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: from idea to production in six steps"](https://github.com/aws-samples/amazon-sagemaker-from-idea-to-production) to make it easier to deploy and tear down.
+This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: from idea to production in six steps"](https://github.com/aws-samples/amazon-sagemaker-from-idea-to-production) to make it easier to deploy and tear down. It uses github actions to run terraform to deploy or teardown the AWS resources automatically.
 
 <br>
 
@@ -180,7 +180,7 @@ After these steps, your forked repository is ready to provision your resources i
 ## Deploying the AWS Infrastructure
 In your forked repository's page, navigate to `Actions` > `Terraform Workflow` > `Run Workflow` > `Run Workflow`
 
-This will start the workflow for deploying the infrastructure and refreshing the page will show the status of the running workflow.
+This will start the workflow for deploying the infrastructure and refreshing the page will show the status of the running workflow. It will take about 3 minutes to deploy everything.
 <img width="1911" height="906" alt="image" src="https://github.com/user-attachments/assets/6b50a4b7-fdf3-4095-be9d-a386ac27ec79" />
 
 <br>
