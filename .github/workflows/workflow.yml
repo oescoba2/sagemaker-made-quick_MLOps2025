@@ -52,6 +52,31 @@ jobs:
         if: github.event.inputs.action == 'deploy'
         run: terraform apply -auto-approve tfplan.binary
 
+      # -------------------------------------------------------------------
+      # SageMaker Cleanup — only runs before Terraform destroy
+      # -------------------------------------------------------------------
+      - name: Set up Python (Destroy only)
+        if: github.event.inputs.action == 'destroy'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install cleanup dependencies (Destroy only)
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          pip install boto3 sagemaker
+
+      - name: Run SageMaker cleanup script (Destroy only)
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          echo "Running pre-destroy cleanup script..."
+          python ../../clean-up-script.py
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      # -------------------------------------------------------------------
+      # Terraform Destroy — runs after cleanup
+      # -------------------------------------------------------------------
       - name: Terraform Destroy (Destroy only)
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
