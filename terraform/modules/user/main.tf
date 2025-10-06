@@ -41,14 +41,14 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
        # Clone repositories if they don't exist
        # -------------------------------
 
-       if [ ! -d "/home/sagemaker-user/sagemaker-made-easier" ]; then
-         git clone https://github.com/Jime567/sagemaker-made-easier.git || {
+       if [ ! -d "/home/sagemaker-user/sagemaker-made-quick" ]; then
+         git clone https://github.com/Jime567/sagemaker-made-quick.git || {
            echo "Error: Failed to clone repository"
            exit 0
          }
-         echo "Repository successfully cloned: sagemaker-made-easier"
+         echo "Repository successfully cloned: sagemaker-made-quick"
        else
-         echo "Repository already exists, skipping clone: sagemaker-made-easier"
+         echo "Repository already exists, skipping clone: sagemaker-made-quick"
        fi
 
        if [ ! -d "/home/sagemaker-user/amazon-sagemaker-from-idea-to-production" ]; then
