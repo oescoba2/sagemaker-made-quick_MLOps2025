@@ -70,7 +70,7 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         run: |
           echo "Running pre-destroy cleanup script..."
-          python ../clean-up-script.py
+          python -u ../clean-up-script.py
         env:
           AWS_DEFAULT_REGION: us-east-1
 
