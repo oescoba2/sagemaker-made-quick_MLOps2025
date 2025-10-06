@@ -17,12 +17,17 @@ import time
 import os
 import sys
 
+sys.stdout.reconfigure(line_buffering=True)
+
+
 # ============================================================
 # Configuration
 # ============================================================
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 NON_INTERACTIVE = True  # always true for CI/CD
-DELETE_WAIT = 15  # seconds between status checks
+DELETE_WAIT = 5   # seconds between checks
+MAX_WAIT_SECS = 60  # maximum per resource
+MAX_ATTEMPTS = MAX_WAIT_SECS // DELETE_WAIT
 
 print("============================================================")
 print(f"Starting SageMaker cleanup in region: {AWS_REGION}")
@@ -38,19 +43,21 @@ s3 = session.resource("s3")
 
 # Helper: wait for resource deletion
 def wait_for_delete(check_func, name, resource_type):
-    """Wait for resource deletion with retries."""
-    for _ in range(60):  # up to ~15 minutes
+    """Wait up to ~1 minute for a resource to delete."""
+    for attempt in range(MAX_ATTEMPTS):
         try:
             check_func()
-            print(f"Waiting for {resource_type} '{name}' to delete...")
+            print(f"[{resource_type}] Waiting for '{name}' to delete... ({attempt+1}/{MAX_ATTEMPTS})", flush=True)
             time.sleep(DELETE_WAIT)
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] in ["ValidationException", "ResourceNotFound"]:
-                print(f"{resource_type} '{name}' deleted.")
+            code = e.response["Error"]["Code"]
+            if code in ["ValidationException", "ResourceNotFound"]:
+                print(f"[{resource_type}] '{name}' deleted.", flush=True)
                 return
             else:
                 raise
-    print(f"Timed out waiting for {resource_type} '{name}' deletion.")
+    print(f"[{resource_type}] Timeout reached (1 minute). Continuing...", flush=True)
+
 
 # ============================================================
 # Detect Domain ID automatically
@@ -183,17 +190,15 @@ for s in stacks:
     if name.startswith("sagemaker-"):
         print(f"Deleting CloudFormation stack: {name}")
         try:
-            cfn.delete_stack(StackName=name)
-            print(f"Delete request sent for stack: {name}")
             waiter = cfn.get_waiter("stack_delete_complete")
-            print(f"Waiting for stack {name} to be deleted...")
-            waiter.wait(StackName=name)
-            print(f"Stack {name} deleted.")
+            print(f"Waiting up to 1 minute for stack {name} deletion...", flush=True)
+            waiter.wait(StackName=name, WaiterConfig={"Delay": 5, "MaxAttempts": 12})  # ≈60s total
+            print(f"Stack {name} deleted.", flush=True)
         except botocore.exceptions.WaiterError:
-            print(f"Timed out waiting for stack {name} deletion.")
+            print(f"[CloudFormation] Timeout waiting for stack {name} deletion. Skipping.", flush=True)
         except botocore.exceptions.ClientError as e:
-            print(f"Error deleting stack {name}: {e}")
-
+            print(f"[CloudFormation] Error deleting stack {name}: {e}", flush=True)
+ 
 # ============================================================
 # Delete Project-Provisioned Buckets
 # ============================================================
