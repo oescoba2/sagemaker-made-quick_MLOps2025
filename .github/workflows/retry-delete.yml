@@ -1,31 +1,74 @@
-name: Retry MLflow Cleanup
+name: Retry MLflow Tracking Server Deletion
 
 on:
-  workflow_run:
-    workflows: ["Terraform Workflow"]
-    types: [completed]
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "AWS region (default: us-east-1)"
+        required: false
+        default: "us-east-1"
 
 jobs:
-  retry:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  retry-delete:
     runs-on: ubuntu-latest
+    timeout-minutes: 120  # stop after 2 hours
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ github.event.inputs.region }}
 
-      - name: Retry deleting MLflow tracking servers
+      - name: Retry MLflow Tracking Server deletion
+        shell: bash
         run: |
-          for i in {1..30}; do
-            echo "Attempt $i to delete MLflow tracking servers..."
-            python3 clean-up-script.py && break
-            echo "Still not deletable. Waiting 2 minutes..."
-            sleep 120
+          REGION="${{ github.event.inputs.region }}"
+          INTERVAL=60    # seconds between retries
+          MAX_ATTEMPTS=$(( (120*60) / INTERVAL ))  # 2 hours total runtime (120 minutes)
+
+          echo "============================================================"
+          echo "Retrying MLflow tracking server deletion in region: $REGION"
+          echo "Will retry every $INTERVAL seconds for up to 2 hours"
+          echo "============================================================"
+
+          for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+            echo ""
+            echo "Attempt $i of $MAX_ATTEMPTS"
+            echo "Listing MLflow tracking servers..."
+            SERVERS=$(aws sagemaker list-mlflow-tracking-servers \
+              --region "$REGION" \
+              --query "TrackingServerSummaries[].TrackingServerName" \
+              --output text 2>/dev/null || true)
+
+            if [ -z "$SERVERS" ]; then
+              echo "No MLflow tracking servers found — cleanup complete."
+              exit 0
+            fi
+
+            for NAME in $SERVERS; do
+              STATUS=$(aws sagemaker list-mlflow-tracking-servers \
+                --region "$REGION" \
+                --query "TrackingServerSummaries[?TrackingServerName=='$NAME'].TrackingServerStatus" \
+                --output text 2>/dev/null || true)
+
+              echo "Found: $NAME (status: $STATUS)"
+              echo "Attempting deletion..."
+
+              aws sagemaker delete-mlflow-tracking-server \
+                --region "$REGION" \
+                --tracking-server-name "$NAME" \
+                && echo "Delete request sent for $NAME" \
+                || echo "Delete failed or not allowed yet ($STATUS)"
+            done
+
+            echo "Sleeping $INTERVAL seconds before next check..."
+            sleep "$INTERVAL"
           done
+
+          echo "Timed out after 2 hours. Some MLflow tracking servers may still exist."
+          exit 1

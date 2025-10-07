@@ -142,11 +142,11 @@ undeletable_servers = []
 
 try:
     statuses = [
-        "Starting", "RollbackFailed", "Started", "RolledBack",
-        "MaintenanceInProgress", "UpdateFailed", "Updating", "Upgraded",
-        "DeleteFailed", "Deleting", "Created", "RollingBack",
+        "Starting", "Started",
+        "MaintenanceInProgress", "UpdateFailed", "Updating",
+        "DeleteFailed", "Deleting", "Created",
         "MaintenanceComplete", "Stopped", "MaintenanceFailed",
-        "Stopping", "UpgradeFailed", "Upgrading", "CreateFailed",
+        "Stopping", "CreateFailed",
         "Creating", "Updated", "StartFailed", "StopFailed"
     ]
 
