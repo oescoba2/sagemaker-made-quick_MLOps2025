@@ -151,11 +151,22 @@ for ep in endpoints:
 # ============================================================
 print("\n===== Deleting MLflow Tracking Servers =====")
 try:
-    print("Listing MLflow tracking servers...")
-    tracking_servers = sm.list_mlflow_tracking_servers(TrackingServerStatus="Created")[
-        "TrackingServerSummaries"
-    ]
-    print(f"Found {len(tracking_servers)} MLflow tracking server(s) to delete.")
+    print("Listing MLflow tracking servers (all statuses)...")
+    tracking_servers = []
+    statuses = ["Creating", "Created", "Failed", "Updating"]
+
+    for status in statuses:
+        try:
+            resp = sm.list_mlflow_tracking_servers(TrackingServerStatus=status)
+            found = resp.get("TrackingServerSummaries", [])
+            tracking_servers.extend(found)
+            if found:
+                print(f"Found {len(found)} tracking server(s) in status '{status}'.")
+        except botocore.exceptions.ClientError as e:
+            print(f"Error listing MLflow tracking servers with status {status}: {e}")
+
+    print(f"Total tracking servers to delete: {len(tracking_servers)}")
+
 except Exception as e:
     print(f"Error listing MLflow tracking servers: {e}")
     tracking_servers = []
