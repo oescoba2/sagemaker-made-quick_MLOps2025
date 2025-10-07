@@ -1,0 +1,31 @@
+name: Retry MLflow Cleanup
+
+on:
+  workflow_run:
+    workflows: ["Terraform Workflow"]
+    types: [completed]
+
+jobs:
+  retry:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Retry deleting MLflow tracking servers
+        run: |
+          for i in {1..30}; do
+            echo "Attempt $i to delete MLflow tracking servers..."
+            python3 clean-up-script.py && break
+            echo "Still not deletable. Waiting 2 minutes..."
+            sleep 120
+          done
