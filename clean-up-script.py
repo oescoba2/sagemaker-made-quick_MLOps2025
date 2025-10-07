@@ -153,7 +153,7 @@ print("\n===== Deleting MLflow Tracking Servers =====")
 try:
     print("Listing MLflow tracking servers (all statuses)...")
     tracking_servers = []
-    statuses = ["Creating", "Created", "Failed", "Updating"]
+    statuses = ["Creating", "Created", "Failed", "Updating", "Stopped"]
 
     for status in statuses:
         try:
