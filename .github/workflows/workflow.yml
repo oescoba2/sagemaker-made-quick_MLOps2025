@@ -44,7 +44,7 @@ jobs:
         run: echo "${{ github.event.inputs.action }}" > terraform_action.txt
 
       - name: Upload Terraform action artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform_action
           path: terraform_action.txt
