@@ -15,10 +15,6 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    outputs:
-      cleanup_failed: ${{ steps.cleanup.outputs.cleanup_failed }}
-      # <<<-- ADD THIS LINE -->>>
-      terraform_action: ${{ steps.set_action_output.outputs.action }}
     defaults:
       run:
         working-directory: ./terraform
@@ -34,21 +30,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1   # Replace with your region
-
-      - name: Set Terraform Action Output
-        id: set_action_output
-        run: echo "action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
-
-      - name: Save Terraform action to file
-        run: echo "${{ github.event.inputs.action }}" > terraform_action.txt
-
-      - name: Upload Terraform action artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform_action
-          path: terraform_action.txt
-
+          aws-region: us-east-1   # Change if needed
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -58,21 +40,24 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      # ---------------------------------------------------------------
+      # DEPLOY ACTION
+      # ---------------------------------------------------------------
       - name: Terraform Fmt (Deploy only)
         if: github.event.inputs.action == 'deploy'
         run: terraform fmt -check
 
-      - name: Terraform Plan (Deploy)
+      - name: Terraform Plan (Deploy only)
         if: github.event.inputs.action == 'deploy'
         run: terraform plan -out=tfplan.binary
 
-      - name: Terraform Apply (Deploy)
+      - name: Terraform Apply (Deploy only)
         if: github.event.inputs.action == 'deploy'
         run: terraform apply -auto-approve tfplan.binary
 
-      # -------------------------------------------------------------------
-      # SageMaker Cleanup — only runs before Terraform destroy
-      # -------------------------------------------------------------------
+      # ---------------------------------------------------------------
+      # DESTROY ACTION
+      # ---------------------------------------------------------------
       - name: Set up Python (Destroy only)
         if: github.event.inputs.action == 'destroy'
         uses: actions/setup-python@v5
@@ -97,10 +82,16 @@ jobs:
         env:
           AWS_DEFAULT_REGION: us-east-1
 
-
-      # -------------------------------------------------------------------
-      # Terraform Destroy — runs after cleanup
-      # -------------------------------------------------------------------
       - name: Terraform Destroy (Destroy only)
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
+
+      # ---------------------------------------------------------------
+      # Trigger the MLflow deletion workflow after destroy
+      # ---------------------------------------------------------------
+      - name: Trigger Retry MLflow Tracking Server Deletion
+        if: github.event.inputs.action == 'destroy'
+        uses: peter-evans/workflow-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: "Retry MLflow Tracking Server Deletion"

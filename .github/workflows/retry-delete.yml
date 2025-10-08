@@ -1,13 +1,10 @@
 name: Retry MLflow Tracking Server Deletion
 
 on:
-  workflow_run:
-    workflows: ["Terraform Workflow"]
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   retry-delete:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -15,31 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Terraform action artifact from triggering workflow
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          echo "Fetching artifact from workflow run $RUN_ID..."
-          mkdir -p artifact
-          ARTIFACT_ID=$(gh api repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
-            --jq '.artifacts[] | select(.name=="terraform_action") | .id')
-          if [ -z "$ARTIFACT_ID" ]; then
-            echo "No terraform_action artifact found, exiting."
-            exit 0
-          fi
-          gh api repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip > artifact.zip
-          unzip artifact.zip -d artifact
-
-      - name: Read Terraform action
-        id: read_action
-        run: |
-          TERRAFORM_ACTION=$(cat ./artifact/terraform_action.txt)
-          echo "Terraform action: $TERRAFORM_ACTION"
-          echo "action=$TERRAFORM_ACTION" >> $GITHUB_OUTPUT
-
       - name: Run MLflow deletion
-        if: ${{ steps.read_action.outputs.action == 'destroy' }}
         shell: bash
         run: |
           REGION="us-east-1"
