@@ -1,37 +1,42 @@
 name: Retry MLflow Tracking Server Deletion
+
 on:
   workflow_run:
     workflows: ["Terraform Workflow"]
     types: [completed]
+
 jobs:
   retry-delete:
-    # This check is correct for consuming the new job output:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' && fromJson(github.event.workflow_run.output).terraform.outputs.terraform_action == 'destroy' }}
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # stop after 2 hours
+    timeout-minutes: 120
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+
+      - name: Download Terraform action artifact
+        uses: actions/download-artifact@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Retry MLflow Tracking Server deletion
+          name: terraform_action
+          path: ./artifact
+
+      - name: Read Terraform action
+        id: read_action
+        run: |
+          TERRAFORM_ACTION=$(cat ./artifact/terraform_action.txt)
+          echo "Terraform action: $TERRAFORM_ACTION"
+          echo "action=$TERRAFORM_ACTION" >> $GITHUB_OUTPUT
+
+      - name: Run MLflow deletion
+        if: ${{ steps.read_action.outputs.action == 'destroy' }}
         shell: bash
         run: |
           REGION="us-east-1"
-          INTERVAL=60    # seconds between retries
-          MAX_ATTEMPTS=$(( (120*60) / INTERVAL ))  # 2 hours total runtime
-          echo "============================================================"
+          INTERVAL=60
+          MAX_ATTEMPTS=$(( (120*60) / INTERVAL ))
           echo "Retrying MLflow tracking server deletion in region: $REGION"
-          echo "Will retry every $INTERVAL seconds for up to 2 hours"
-          echo "============================================================"
           for ((i=1; i<=MAX_ATTEMPTS; i++)); do
-            echo ""
-            echo "Attempt $i of $MAX_ATTEMPTS"
-            echo "Listing MLflow tracking servers..."
             SERVERS=$(aws sagemaker list-mlflow-tracking-servers \
               --region "$REGION" \
               --query "TrackingServerSummaries[].TrackingServerName" \
@@ -53,7 +58,6 @@ jobs:
                 && echo "Delete request sent for $NAME" \
                 || echo "Delete failed or not allowed yet ($STATUS)"
             done
-            echo "Sleeping $INTERVAL seconds before next check..."
             sleep "$INTERVAL"
           done
           echo "Timed out after 2 hours. Some MLflow tracking servers may still exist."

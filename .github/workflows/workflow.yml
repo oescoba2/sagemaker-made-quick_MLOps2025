@@ -40,6 +40,16 @@ jobs:
         id: set_action_output
         run: echo "action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
 
+      - name: Save Terraform action to file
+        run: echo "${{ github.event.inputs.action }}" > terraform_action.txt
+
+      - name: Upload Terraform action artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform_action
+          path: terraform_action.txt
+
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
