@@ -1,7 +1,16 @@
-name: Retry MLflow Tracking Server Deletion
+name: Retry MLflow Tracking Server Deletion (Testing Ver)
 
 on:
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose Terraform action'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
 
 jobs:
   retry-delete:

@@ -86,12 +86,3 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
 
-      # ---------------------------------------------------------------
-      # Trigger the MLflow deletion workflow after destroy
-      # ---------------------------------------------------------------
-      - name: Trigger Retry MLflow Tracking Server Deletion
-        if: github.event.inputs.action == 'destroy'
-        uses: peter-evans/workflow-dispatch@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: "Retry MLflow Tracking Server Deletion"
