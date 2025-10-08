@@ -5,9 +5,8 @@ on:
     types: [completed]
 jobs:
   retry-delete:
-    # Run only if Terraform workflow finished successfully or failed (not cancelled)
-    # AND the Terraform workflow was triggered with the 'destroy' action.
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' && github.event.workflow_run.event.inputs.action == 'destroy' }}
+    # This check is correct for consuming the new job output:
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' && fromJson(github.event.workflow_run.output).terraform.outputs.terraform_action == 'destroy' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120  # stop after 2 hours
     steps:
