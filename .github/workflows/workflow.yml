@@ -91,7 +91,7 @@ jobs:
       # Trigger retry-delete workflow
       # ---------------------------------------------------------------
       - name: Repository Dispatch to Trigger retry-delete workflow
-        if: github.event.inputs.action == 'destroy' || github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
+        if: github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         uses: peter-evans/repository-dispatch@v4
         with:
           event-type: delete-mlflow
