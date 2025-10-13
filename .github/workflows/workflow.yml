@@ -11,6 +11,7 @@ on:
         options:
           - deploy
           - destroy
+          - destroy (with retry-delete, requires PAT_TOKEN secret)
 
 jobs:
   terraform:
@@ -59,18 +60,18 @@ jobs:
       # DESTROY ACTION
       # ---------------------------------------------------------------
       - name: Set up Python (Destroy only)
-        if: github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy' || github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install cleanup dependencies (Destroy only)
-        if: github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy' || github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         run: |
           pip install boto3 sagemaker
 
       - name: Run SageMaker cleanup script (Destroy only)
-        if: github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy' || github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         id: cleanup
         continue-on-error: true
         run: |
@@ -83,14 +84,14 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
 
       - name: Terraform Destroy (Destroy only)
-        if: github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy' || github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         run: terraform destroy -auto-approve
 
       # ---------------------------------------------------------------
       # Trigger retry-delete workflow
       # ---------------------------------------------------------------
       - name: Repository Dispatch to Trigger retry-delete workflow
-        if: github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy (with retry-delete, requires PAT_TOKEN secret)'
         uses: peter-evans/repository-dispatch@v4
         with:
           event-type: delete-mlflow
