@@ -34,10 +34,42 @@ This is a terraform and github actions wrapper on ["Amazon SageMaker AI MLOps: f
 
 - An AWS S3 bucket
 - Fork this repo to your own github account. Note this repo assumes an AWS region of `us-east-1`.
+- A Github PAT Token (Classic)
 
 <br>
 
 ## Setup Instructions
+## Adding your Github PAT Token
+
+Click your Github profile in the top right at Github.com
+
+
+Click `Settings` > `Developer Settings` > `Personal Access Tokens` > `Tokens (Classic)` > `Generate New Token` > `Generate New Token (Classic)`
+
+Give it workflow permissions
+
+<br> 
+
+<img width="802" height="773" alt="image" src="https://github.com/user-attachments/assets/fab80ef2-0ee5-40f2-9846-5b123d428577" />
+
+<br>
+
+Once the token is created, copy the token and return to your branch's repository page
+
+From your repo page, go to the top and click `Settings` > `Secrets & Variables` > `Actions` > `New Repository Secret`
+
+Name the secret `PAT_TOKEN`
+
+<br>
+
+<img width="789" height="441" alt="image" src="https://github.com/user-attachments/assets/a6aa8ac7-cea8-469e-9056-d63c97904152" />
+
+<br>
+
+The Personal Access Token is now available to the actions workflows
+
+<br>
+
 ## Creating the IAM user
 
 We first need an IAM user to give Github and Terraform access to controlling resources on our AWS account. It will need pretty broad privileges to be able to provision all of the infrastructure for the lab.
