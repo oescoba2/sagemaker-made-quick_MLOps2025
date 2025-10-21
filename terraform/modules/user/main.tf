@@ -42,7 +42,7 @@ resource "aws_sagemaker_studio_lifecycle_config" "clone_repo" {
        # -------------------------------
 
        if [ ! -d "/home/sagemaker-user/sagemaker-made-quick" ]; then
-         git clone https://github.com/Jime567/sagemaker-made-quick.git || {
+         git clone https://github.com/oescoba2/sagemaker-made-quick_MLOps2025.git|| {
            echo "Error: Failed to clone repository"
            exit 0
          }
